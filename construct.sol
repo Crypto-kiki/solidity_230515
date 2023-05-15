@@ -210,11 +210,157 @@ contract MODIFIER2 {
 
 
 contract MODIFIER3 {
-
+    /*
+    실습가이드
+    1. setAasTwo()로 a 값 2로 만들기
+    2. setA() 실행 후, getB2() 실행해서 결과 보기
+    */
     uint a;
     string b;
     string[] b2;
 
-    modifier 
+    modifier plusOneBefore {    // () 없어도 됨! 인풋값이 없을 경우!
+        _;
+        a++;
+        _;
+    }
+
+    function setA() public plusOneBefore  {
+        if(a>=3) {
+            b = "A";
+            b2.push(b);
+        } else {
+            b = "B";
+            b2.push(b);
+        }
+    }
+
+    function getA() public view returns(uint) {
+        return a;
+    }
+
+    function getB() public view returns(string memory) {
+        return b;
+    }
+
+    function getB2() public view returns(string[] memory) {
+        return b2;
+    }
+
+    function setAasTwo() public {
+        a = 2;
+    }
+}
+
+
+contract MODIFIER4 {
+/*  modifier의 변수에 uint / string 등 형을 직접 못넣음.
+    function buyCigar(uint _a, string memory _name) public overTwenty(uint _a) returns(string memory) {
+        return "Passed";
+    }
+
+    단, 변수를 uint c; 를 생성하고 c를 넣을수는 있음.
+*/
+     struct Person {
+        uint age;
+        string name;
+    }
+
+    Person P;
+
+    modifier overTwenty(uint _age, string memory _criminal) {
+        // 어디에 걸리느냐에 따라 에러 메세지가 다름.
+        require(_age >20, "Too young");
+        require(keccak256(abi.encodePacked(_criminal)) != keccak256(abi.encodePacked("Bob")), "Bob is criminal. She can't buy it");
+        _;
+    }
+
+    function buyCigar(uint _a, string memory _name) public pure overTwenty(_a, _name) returns(string memory) {
+        return "Passed";
+    }
+
+    function buyAlcho(uint _a, string memory _name) public pure overTwenty(_a, _name) returns(string memory) {
+        return "Passed";
+    }
+
+    function buyGu(uint _a, string memory _name) public pure overTwenty(_a, _name) returns(string memory) {
+        return "Passed";
+    }
+
+    function setP(uint _age, string memory _name) public {
+        P = Person(_age, _name);
+    }
+
+    function getP() public view returns(Person memory) {
+        return P;
+    }
+
+    function buyCigar2() public overTwenty(P.age, P.name) view returns(string memory) {
+        return "Passed";
+    }
+
+    function buyAlcho2() public overTwenty(P.age, P.name) view returns(string memory) {
+        return "Passed";
+    }
+
+    function buyGu2() public overTwenty(P.age, P.name) view returns(string memory) {
+        return "Passed";
+    }
+
+}
+
+
+contract MODIFIER5 {
+
+    uint mutex = 0;
+
+    modifier m_check {
+        mutex++;
+        _;
+        mutex--;
+    }
+
+    modifier shouldBeZero {
+        require(mutex == 0, "someone is using");
+        _;
+    }
+
+    modifier shouldBeOne {
+        require(mutex == 1, "should be one");
+        _;
+    }
+
+    function inAndOut() public m_check returns(string memory) {
+        return "Done";
+    }
+
+    function inAndOut2() public m_check shouldBeZero returns(string memory) {  // m_check에서 걸림. _; 까지오고 shouldBeZero 실행하고 다시 mutex--;임
+        return "Done";
+    }
+
+    function inAndOut2_2() public m_check shouldBeOne returns(string memory) {  // m_check에서 걸림.
+        return "Done";
+    }
+
+    function inAndOut2_3() public shouldBeOne m_check returns(string memory) {
+        return "Done";
+    }
+
+
+
+
+
+
+    function inAndOut3() public shouldBeZero m_check returns(string memory) {
+        return "Done";
+    }
+
+    function occupy() public shouldBeZero {
+        mutex++;
+    }
+
+    function vacancy() public {
+        mutex--;
+    }
 
 }
